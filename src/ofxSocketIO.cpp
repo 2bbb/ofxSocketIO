@@ -6,12 +6,12 @@
 //
 #include "ofxSocketIO.h"
 
-void ofxSocketIO::setup (std::string &address) {
+void ofxSocketIO::setup (const std::string &address) {
   std::map<std::string,std::string> query;
   setup(address, query);
 }
 
-void ofxSocketIO::setup (std::string &address, std::map<std::string,std::string> &query) {
+void ofxSocketIO::setup (const std::string &address, const std::map<std::string,std::string> &query) {
   currentStatus = "not connected";
 
   client.set_open_listener(std::bind(&ofxSocketIO::onConnect, this));
@@ -47,7 +47,7 @@ string ofxSocketIO::getStatus() {
   return currentStatus;
 }
 
-void ofxSocketIO::bindEvent (ofEvent<ofxSocketIOData&>& event, std::string eventName, std::string nsp) {
+void ofxSocketIO::bindEvent (ofEvent<ofxSocketIOData&>& event, const std::string& eventName, const std::string& nsp) {
   client.socket(nsp)->on(eventName, sio::socket::event_listener_aux([&] (string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp) {
     ofxSocketIOData ofxData;
     if (data) {
@@ -59,12 +59,12 @@ void ofxSocketIO::bindEvent (ofEvent<ofxSocketIOData&>& event, std::string event
   }));
 }
 
-void ofxSocketIO::emit (std::string& eventName) {
+void ofxSocketIO::emit (const std::string& eventName) {
   std::string data;
   emit(eventName, data);
 }
 
-void ofxSocketIO::emit (std::string& eventName, std::string& data, string nsp) {
+void ofxSocketIO::emit (const std::string& eventName, const std::string& data, const string& nsp) {
   if (client.opened()) {
     client.socket(nsp)->emit(eventName, data);
   } else {
@@ -72,7 +72,7 @@ void ofxSocketIO::emit (std::string& eventName, std::string& data, string nsp) {
   }
 }
 
-void ofxSocketIO::emitBinary (std::string& eventName, shared_ptr<string> const& bStr, string nsp) {
+void ofxSocketIO::emitBinary (const std::string& eventName, std::shared_ptr<std::string> bStr, const std::string& nsp) {
   if (client.opened()) {
     client.socket(nsp)->emit(eventName, bStr);
   } else {
@@ -85,6 +85,6 @@ void ofxSocketIO::closeConnection () {
   client.sync_close();
 }
 
-void ofxSocketIO::openConnection (std::string &address) {
+void ofxSocketIO::openConnection (const std::string &address) {
     client.connect(address);
 }

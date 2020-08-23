@@ -22,25 +22,25 @@ private :
   std::string currentStatus = "closed";
 
   void onConnect();
-  void onClose(sio::client::close_reason const& reason);
+  void onClose(const sio::client::close_reason& reason);
   void onFail();
   void onTryReconnect();
 
 public :
-  string getStatus();
+  std::string getStatus();
 
-  void setup(std::string& address);
-  void setup(std::string& address, std::map<std::string,std::string>& query);
+  void setup(const std::string& address);
+  void setup(const std::string& address, const std::map<std::string,std::string>& query);
 
-  void bindEvent(ofEvent<ofxSocketIOData&>& event, std::string eventName, std::string nsp="");
+  void bindEvent(ofEvent<ofxSocketIOData&>& event, const std::string& eventName, const std::string& nsp="");
 
   ofEvent<void> connectionEvent;
   ofEvent<std::string> notifyEvent;
 
-  void emit(std::string& eventName);
-  void emit(std::string& eventName, std::string& data, std::string nsp="");
-  void emitBinary(std::string& eventName, shared_ptr<string> const& bStr, std::string nsp="");
+  void emit(const std::string& eventName);
+  void emit(const std::string& eventName, const std::string& data, const std::string& nsp="");
+  void emitBinary(const std::string& eventName, std::shared_ptr<std::string> bStr, const std::string& nsp="");
 
   void closeConnection();
-  void openConnection(std::string& address);
+  void openConnection(const std::string& address);
 };
