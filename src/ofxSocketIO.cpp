@@ -6,11 +6,6 @@
 //
 #include "ofxSocketIO.h"
 
-void ofxSocketIO::setup (const std::string &address) {
-  std::map<std::string,std::string> query;
-  setup(address, query);
-}
-
 void ofxSocketIO::setup (const std::string &address, const std::map<std::string,std::string> &query) {
   currentStatus = "not connected";
 
@@ -47,26 +42,46 @@ string ofxSocketIO::getStatus() {
   return currentStatus;
 }
 
-void ofxSocketIO::bindEvent (ofEvent<ofxSocketIOData&>& event, const std::string& eventName, const std::string& nsp) {
-  client.socket(nsp)->on(eventName, sio::socket::event_listener_aux([&] (string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp) {
-    ofxSocketIOData ofxData;
-    if (data) {
-      ofxData.setData(data);
-    } else {
-      ofxData.setNullData();
-    }
-    ofNotifyEvent(event, ofxData, this);
-  }));
+void ofxSocketIO::bindEvent(ofEvent<const ofJson &>& event,
+                            const std::string& eventName,
+                            const std::string& nsp)
+{
+  auto callback = [&](const std::string &name,
+                      const sio::message::ptr &data,
+                      bool isAck,
+                      sio::message::list &ack_resp)
+  {
+    ofJson json;
+    if(data) json = toJSON(data);
+    ofNotifyEvent(event, json, this);
+  };
+  auto listener = sio::socket::event_listener_aux(callback);
+  client.socket(nsp)->on(eventName, listener);
 }
 
-void ofxSocketIO::emit (const std::string& eventName) {
-  std::string data;
-  emit(eventName, data);
+void ofxSocketIO::on(const std::string &eventName,
+                     std::function<void(const ofJson &json)> callback,
+                     const std::string &nsp)
+{
+  auto cb = [=](const std::string &name,
+                const sio::message::ptr &data,
+                bool isAck,
+                sio::message::list &ack_resp)
+  {
+    ofJson json;
+    if(data) json = toJSON(data);
+    callback(json);
+  };
+  auto listener = sio::socket::event_listener_aux(cb);
+  if(nsp == "") client.socket()->on(eventName, listener);
+  else client.socket(nsp)->on(eventName, listener);
 }
 
-void ofxSocketIO::emit (const std::string& eventName, const std::string& data, const string& nsp) {
-  if (client.opened()) {
-    client.socket(nsp)->emit(eventName, data);
+void ofxSocketIO::emit (const std::string& eventName, const ofJson &data, const std::string &nsp) {
+  if(client.opened()) {
+    sio::message::list list = sio::message::list();
+    list.push(toSIOMessage(data));
+    client.socket(nsp)->emit(eventName, list);
   } else {
     ofLogWarning("ofxSocketIO", "socket is not available.");
   }
