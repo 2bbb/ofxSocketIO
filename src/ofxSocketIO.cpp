@@ -15,6 +15,12 @@ void ofxSocketIO::setup (const std::string &address, const std::map<std::string,
   client.set_reconnect_listener(std::bind(&ofxSocketIO::onTryReconnect, this));
 
   client.connect(address, query);
+  
+  ofAddListener(ofEvents().exit, this, &ofxSocketIO::onExit);
+}
+
+void ofxSocketIO::onExit(ofEventArgs &) {
+  closeConnection();
 }
 
 void ofxSocketIO::onConnect () {
@@ -97,9 +103,9 @@ void ofxSocketIO::emitBinary (const std::string& eventName, std::shared_ptr<std:
 
 void ofxSocketIO::closeConnection () {
   currentStatus = "closed";
-  client.sync_close();
+  if(client.opened()) client.sync_close();
 }
 
 void ofxSocketIO::openConnection (const std::string &address) {
-    client.connect(address);
+    if(!client.opened()) client.connect(address);
 }

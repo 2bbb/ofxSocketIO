@@ -25,7 +25,7 @@ private :
   void onClose(const sio::client::close_reason& reason);
   void onFail();
   void onTryReconnect();
-
+  void onExit(ofEventArgs &);
 public :
   std::string getStatus();
 
